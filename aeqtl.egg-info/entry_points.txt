@@ -1,0 +1,3 @@
+[console_scripts]
+aeqtl = aeqtl:main
+

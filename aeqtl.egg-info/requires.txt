@@ -1,0 +1,7 @@
+pysam==0.13
+PyVCF
+Cython
+statsmodels
+scipy
+pandas
+bx_interval_tree
