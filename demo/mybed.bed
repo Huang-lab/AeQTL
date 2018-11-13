@@ -1,0 +1,4 @@
+1	10000	20000	region1	gene_01
+1	300000	400000	region2	gene_01;gene_03
+2	300000	500000	region3	gene_02;gene_04
+2	400000	700000	region4	gene_02;gene_03;gene_04

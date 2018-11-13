@@ -6,6 +6,7 @@ import numpy as np
 from scipy import stats
 import matplotlib.pyplot as plt
 import subprocess
+import sys
 
 
 def argument_parser():
@@ -73,7 +74,24 @@ def get_matched_sample(vcf_path, expression_matrix_path):
 	return total_vcf_s, total_exp_s, total_matched_s
 
 
-def build_interval_trees(bed_path):
+# UPDATE 10/31/2018
+def check_tested_genes(bed_path, expression_matrix_path):
+	all_genes = []
+	f = open(bed_path, 'r')
+	line = f.readline()
+	f.close()
+	if len(line.strip("\n").split("\t")) < 4:
+		sys.exit("Error: number of columns in BED file is smaller than 4")
+	if len(line.strip("\n").split("\t")) == 4:
+		with open(expression_matrix_path, 'r') as exp:
+			for i, l in enumerate(exp):
+				if i == 0:
+					continue
+				all_genes.append(l.strip("\n").split("\t")[0])
+	return all_genes
+
+
+def build_interval_trees(bed_path, expression_matrix_path):
 	# Build a tree for each chromosome
 	# trees[0-21]: chr1 - chr22
 	# trees[22]: chrX
@@ -87,6 +105,9 @@ def build_interval_trees(bed_path):
 	# value: list of genes to be tested
 	RG_dict = {}
 
+	# check whether user has provided the column of tested genes in BED file
+	all_genes = check_tested_genes(bed_path, expression_matrix_path)
+
 	with open(bed_path, "r") as f:
 		for line in f:
 			cols = line.strip("\n").split("\t")
@@ -95,7 +116,13 @@ def build_interval_trees(bed_path):
 			start = int(cols[1])
 			end = int(cols[2])
 			regionName = cols[3]
-			testedGenes = cols[4].split(";")
+			# If user has provided tested genes
+			if len(all_genes) == 0:
+				testedGenes = cols[4].split(";")
+			# If user has not provided tested genes for ANY region, 
+			# by default test each region against every gene in expression file
+			else:
+				testedGenes = all_genes
 			# Build interval trees
 			if chrom == 'X':
 				trees[22].insert_interval(Interval(start, end+1, value={'regionName': regionName}))
@@ -206,7 +233,7 @@ def main(vcf_path, bed_path, expression_matrix_path, output_dir):
 	total_vcf_s, total_exp_s, total_matched_s = get_matched_sample(vcf_path, expression_matrix_path)
 	print("VCF sample total: %d, EXP sample total: %d, MATCHED sample total: %d" % (total_vcf_s, total_exp_s, total_matched_s))
 	
-	trees, RG_dict = build_interval_trees(bed_path)
+	trees, RG_dict = build_interval_trees(bed_path, expression_matrix_path)
 	RS_dict = map_samples(trees, vcf_path)
 	bin_expression(RG_dict, RS_dict, expression_matrix_path, output_dir)
 
@@ -214,6 +241,4 @@ def main(vcf_path, bed_path, expression_matrix_path, output_dir):
 if __name__ == '__main__':
 	vcf_path, bed_path, expression_matrix_path, output_dir = argument_parser()
 	main(vcf_path, bed_path, expression_matrix_path, output_dir)
-
-
 
