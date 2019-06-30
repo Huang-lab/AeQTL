@@ -113,7 +113,7 @@ A tab separated .tsv file of summary statistics. Each row is an eQTL test betwee
 - adj_pvalue_\<covariate> *(for each covariate)*
 
 
-## Example using TCGA Somatic Data
+## Example using TCGA somatic data
 
 This is a demo analysis of TCGA somatic truncations on chromosome 17 using AeQTL. The whole procedure from data pre-processing to generating the final summary file will be included. 
 
